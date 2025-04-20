@@ -1,14 +1,31 @@
-from sqlalchemy import Column, Integer, String, Boolean
-from .database import Base
+from sqlalchemy import Column, Integer, String, Boolean, Enum, ForeignKey
+from sqlalchemy.orm import relationship, declarative_base
+import enum
 
-# Every table in the database will have its corresponding model
+Base = declarative_base()
+
+# Define roles as an Enum
+class UserRole(str, enum.Enum):
+    student = "student"
+    parent = "parent"
+    teacher = "teacher"
+
 class User(Base):
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
-    email = Column(String(120), unique=True, nullable=False)
-    # Make sure to hash the password before saving it
-    hashed_password = Column(String(80), unique=False, nullable=False)
-    is_active = Column(Boolean(), unique=False, nullable=False)
+    __tablename__ = "users"
 
-    def __repr__(self):
-        return '<User %r>' % self.username
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    role = Column(Enum(UserRole), nullable=False)
+
+    # If this user is a student, they can be related to parents/teachers
+    student_data = relationship("StudentData", back_populates="student", uselist=False)
+
+class StudentData(Base):
+    __tablename__ = "student_data"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("users.id"))
+    data = Column(String)  # Replace with actual student data fields
+    student = relationship("User", back_populates="student_data")

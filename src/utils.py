@@ -95,7 +95,6 @@ def add_documentation_panel(site):
 
     return site
 
-
 def include_routers(app: FastAPI):
     routers_path = os.path.join(os.path.dirname(__file__), 'endpoints')
     for file in os.listdir(routers_path):
